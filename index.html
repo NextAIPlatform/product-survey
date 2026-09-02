@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>NEXT — Product Validation</title>
+<style>
+:root{
+  --ink:#131B2A; --ink-2:#20293D; --slate:#48546C; --muted:#6E7A8E;
+  --paper:#F2F4F8; --card:#FFFFFF; --rule:#D8DDE6; --rule-2:#EBEEF3;
+  --brass:#A8761F; --brass-soft:#F3E9D4;
+  --r1:#EAEDF2; --r2:#C6CEDB; --r3:#7E8CA5; --r4:#2A3550;
+  --ok:#2C6A52; --warn:#8C3A2E;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  --wrap:820px; --wide:1000px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:var(--sans); background:var(--paper); color:var(--ink);
+  font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:var(--mono)}
+.eyebrow{
+  font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--muted);
+}
+
+/* ---------- sticky readout ---------- */
+#bar{
+  position:sticky; top:0; z-index:60; background:rgba(19,27,42,.97);
+  border-bottom:1px solid #2C3549; backdrop-filter:saturate(140%) blur(6px);
+}
+#bar .inner{
+  max-width:var(--wide); margin:0 auto; padding:9px 20px;
+  display:flex; align-items:center; gap:16px;
+}
+#bar .lbl{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:#8D9AB2; white-space:nowrap}
+#bar .count{font-family:var(--mono); font-size:12px; color:#F0F3F8; font-variant-numeric:tabular-nums}
+#ticks{display:flex; gap:3px; flex:1; min-width:0}
+#ticks i{flex:1; height:5px; background:#333E56; border-radius:1px; transition:background .2s ease}
+#ticks i.on{background:var(--brass)}
+@media(prefers-reduced-motion:reduce){#ticks i{transition:none}}
+
+/* ---------- masthead ---------- */
+header.mast{background:var(--ink); color:#EEF1F6; padding:52px 20px 46px}
+.mast .inner{max-width:var(--wrap); margin:0 auto}
+.mast .kicker{font-family:var(--mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--brass)}
+.mast h1{
+  font-size:clamp(34px,6vw,54px); line-height:1.02; letter-spacing:-.03em;
+  font-weight:700; margin:14px 0 0;
+}
+.mast h1 .sub{display:block; font-weight:400; color:#93A0B8; font-size:clamp(17px,2.6vw,22px); letter-spacing:-.01em; margin-top:12px; line-height:1.35}
+.mast .meta{
+  margin-top:30px; padding-top:20px; border-top:1px solid #2E3850;
+  display:flex; flex-wrap:wrap; gap:26px;
+}
+.mast .meta div{font-family:var(--mono); font-size:11.5px; color:#8D9AB2; letter-spacing:.06em}
+.mast .meta b{display:block; color:#EEF1F6; font-weight:500; letter-spacing:0; font-size:13px; margin-top:3px}
+
+/* ---------- brief ---------- */
+.brief{max-width:var(--wrap); margin:0 auto; padding:34px 20px 6px}
+.brief p{margin:0 0 14px; color:var(--slate); font-size:16.5px}
+.brief .callout{
+  background:var(--card); border:1px solid var(--rule); border-left:3px solid var(--brass);
+  padding:16px 18px; margin:22px 0 0; font-size:14.5px; color:var(--slate);
+}
+.brief .callout b{color:var(--ink)}
+
+/* ---------- sections ---------- */
+main{max-width:var(--wide); margin:0 auto; padding:0 20px 40px}
+section.sec{margin-top:44px}
+.sechead{display:flex; align-items:baseline; gap:14px; padding-bottom:10px; border-bottom:2px solid var(--ink)}
+.sechead .num{font-family:var(--mono); font-size:12px; color:var(--brass); letter-spacing:.1em}
+.sechead h2{margin:0; font-size:20px; letter-spacing:-.02em; font-weight:650}
+.secnote{color:var(--muted); font-size:14px; margin:10px 0 0; max-width:var(--wrap)}
+
+/* ---------- optional section + gate ---------- */
+.sechead .opttag{
+  margin-left:auto; font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--brass); border:1px solid var(--brass); padding:3px 8px; align-self:center;
+}
+.sec.optional .sechead{border-bottom-color:var(--r3)}
+.sec.optional .sechead .num{color:var(--muted)}
+.gatebox{
+  background:var(--card); border:1px solid var(--rule); border-left:3px solid var(--r3);
+  margin-top:14px; padding:24px 24px 22px;
+}
+.gatebox h4{margin:0 0 10px; font-size:17px; letter-spacing:-.01em; font-weight:650}
+.gatebox p{margin:0 0 12px; color:var(--slate); font-size:14.5px; max-width:640px}
+.gatebox p b{color:var(--ink)}
+.gatebtns{display:flex; gap:10px; flex-wrap:wrap; margin-top:18px}
+.gatebtns button{
+  font-family:var(--sans); font-size:14.5px; padding:12px 22px; cursor:pointer; border:1px solid var(--ink);
+}
+.gatebtns .gopen{background:var(--ink); color:#fff; font-weight:600}
+.gatebtns .gopen:hover{background:#0C1320}
+.gatebtns .gskip{background:none; color:var(--slate); border-color:var(--rule)}
+.gatebtns .gskip:hover{border-color:var(--r3); color:var(--ink)}
+.gatebtns button:focus-visible{outline:2px solid var(--brass); outline-offset:2px}
+.gateafter{
+  margin-top:14px; padding:15px 18px; background:var(--card); border:1px solid var(--rule);
+  display:flex; gap:14px; align-items:center; flex-wrap:wrap;
+  font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; color:var(--muted);
+}
+.gateafter .glink{
+  background:none; border:none; padding:0; cursor:pointer; color:var(--brass);
+  font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; text-decoration:underline;
+}
+.gateafter .glink:hover{color:#7C5710}
+
+/* ---------- question card ---------- */
+.q{background:var(--card); border:1px solid var(--rule); margin-top:14px; padding:22px 22px 20px}
+.q.wide{}
+.qhead{display:flex; gap:12px; align-items:baseline}
+.qnum{font-family:var(--mono); font-size:11px; color:var(--muted); letter-spacing:.1em; padding-top:3px; white-space:nowrap}
+.qtext{margin:0; font-size:17px; font-weight:600; letter-spacing:-.01em; line-height:1.4}
+.qhint{margin:8px 0 0 0; color:var(--muted); font-size:14px; line-height:1.5}
+.qhint.quote{border-left:2px solid var(--rule); padding-left:12px; color:var(--slate); font-size:14.5px}
+.req{color:var(--brass); font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; margin-left:6px}
+.opt{color:var(--muted); font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; margin-left:6px}
+.qbody{margin-top:16px}
+
+/* ---------- contact fields ---------- */
+.fields{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+.field label{display:block; font-family:var(--mono); font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--muted); margin-bottom:6px}
+.field input{
+  width:100%; padding:11px 12px; font-family:var(--sans); font-size:15px; color:var(--ink);
+  background:#FCFDFE; border:1px solid var(--rule); border-radius:0;
+}
+.field input:focus{outline:2px solid var(--brass); outline-offset:-1px; background:#fff}
+.field.bad input{border-color:var(--warn); background:#FDF6F5}
+@media(max-width:620px){.fields{grid-template-columns:1fr}}
+
+/* ---------- choices ---------- */
+.choices{display:flex; flex-direction:column; gap:8px}
+.choice{
+  display:flex; align-items:flex-start; gap:11px; padding:11px 13px; cursor:pointer;
+  border:1px solid var(--rule); background:#FCFDFE; font-size:15px; line-height:1.45;
+}
+.choice:hover{border-color:var(--r3); background:#fff}
+.choice input{margin:3px 0 0; accent-color:var(--brass); width:15px; height:15px; flex:none}
+.choice.on{border-color:var(--ink); background:#fff; box-shadow:inset 3px 0 0 var(--brass)}
+.choice.dim{opacity:.45}
+.choice span{flex:1}
+.pick-note{font-family:var(--mono); font-size:11px; color:var(--muted); letter-spacing:.08em; margin-top:10px}
+
+/* ---------- grid ---------- */
+.gridwrap{margin-top:4px}
+.gridstat{font-family:var(--mono); font-size:11px; letter-spacing:.1em; color:var(--muted); margin-bottom:10px}
+.gridstat.done{color:var(--ok)}
+.gtable{display:grid; border-top:1px solid var(--rule)}
+.gtable .ghead{display:contents}
+.gh{
+  font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  padding:10px 4px; text-align:center; border-bottom:1px solid var(--rule); align-self:end; line-height:1.3;
+}
+.gh.first{text-align:left; padding-left:0}
+.grow{display:contents}
+.gl{
+  padding:14px 16px 14px 0; border-bottom:1px solid var(--rule-2); font-size:14.5px; line-height:1.45; color:var(--ink);
+}
+.gl b{display:block; font-family:var(--mono); font-size:10px; letter-spacing:.12em; color:var(--muted); margin-bottom:4px; font-weight:400}
+.gc{
+  border-bottom:1px solid var(--rule-2); border-left:1px solid var(--rule-2);
+  display:flex; align-items:center; justify-content:center; padding:8px 4px;
+}
+.gbtn{
+  width:100%; min-height:38px; border:1px solid var(--rule); background:#FCFDFE; cursor:pointer;
+  font-family:var(--mono); font-size:11px; color:var(--muted); letter-spacing:.06em;
+  transition:background .12s ease, color .12s ease, border-color .12s ease;
+}
+.gbtn:hover{border-color:var(--r3)}
+.gbtn:focus-visible{outline:2px solid var(--brass); outline-offset:1px}
+.gbtn.on{color:#fff; border-color:transparent; box-shadow:inset 0 -3px 0 rgba(0,0,0,.18)}
+.gbtn.on[data-v="1"]{background:var(--r1); color:var(--slate); box-shadow:inset 0 -3px 0 var(--r2)}
+.gbtn.on[data-v="2"]{background:var(--r2); color:var(--ink)}
+.gbtn.on[data-v="3"]{background:var(--r3); color:#fff}
+.gbtn.on[data-v="4"]{background:var(--r4); color:#fff}
+.gc.out{border-left:2px solid var(--rule)}
+.gbtn.out{color:#8B96A8; font-style:italic}
+.gbtn.on.out,.gbtn.on[data-v="0"]{background:#EFF1F5; color:var(--slate); border-color:var(--r2); box-shadow:inset 0 -3px 0 var(--r3); font-style:italic}
+@media(prefers-reduced-motion:reduce){.gbtn{transition:none}}
+.gbtn .sm{display:none}
+@media(max-width:760px){ .gbtn .lg{display:none} .gbtn .sm{display:inline} }
+
+/* mobile grid → stacked */
+@media(max-width:760px){
+  .gtable{display:block; border-top:none}
+  .gtable .ghead{display:none}
+  .grow{display:block; border:1px solid var(--rule); background:#FCFDFE; padding:13px; margin-bottom:10px}
+  .gl{border:none; padding:0 0 11px}
+  .gcells{display:grid; grid-template-columns:repeat(4,1fr); gap:6px}
+  .gc{border:none; padding:0}
+  .gc.out{grid-column:1 / -1; border-left:none; margin-top:2px}
+  .gbtn.out{min-height:38px}
+  .gbtn{font-size:10px; padding:8px 2px; min-height:44px}
+}
+.gcells{display:contents}
+@media(max-width:760px){.gcells{display:grid}}
+
+/* ---------- textarea ---------- */
+textarea{
+  width:100%; min-height:96px; padding:12px; font-family:var(--sans); font-size:15px; line-height:1.5;
+  color:var(--ink); background:#FCFDFE; border:1px solid var(--rule); resize:vertical;
+}
+textarea:focus{outline:2px solid var(--brass); outline-offset:-1px; background:#fff}
+
+/* ---------- submit ---------- */
+.handoff{
+  display:flex; align-items:center; gap:14px; margin:30px 0 0;
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted);
+}
+.handoff:before,.handoff:after{content:""; height:1px; background:var(--rule); flex:1}
+.submitwrap{
+  margin-top:14px; background:var(--ink); color:#EEF1F6; padding:32px 28px;
+  border-top:3px solid var(--brass);
+}
+.swgrid{display:grid; grid-template-columns:1fr auto; gap:40px; align-items:center}
+.submitwrap h3{margin:8px 0 8px; font-size:21px; letter-spacing:-.015em}
+.submitwrap p{margin:0; color:#95A2BA; font-size:14.5px; max-width:520px}
+.swstep{font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--brass)}
+.ready{
+  font-family:var(--mono); font-size:11px; letter-spacing:.13em; text-transform:uppercase;
+  color:#8D9AB2; margin-bottom:11px; text-align:right;
+}
+.ready.set{color:#8FD9BC}
+button.go{
+  background:var(--brass); color:#fff; border:none; padding:17px 32px; font-size:16px; font-weight:650;
+  font-family:var(--sans); cursor:pointer; letter-spacing:.01em; white-space:nowrap;
+  display:inline-flex; align-items:center; gap:12px; box-shadow:0 2px 0 #75510F;
+  transition:background .13s ease, transform .13s ease, box-shadow .13s ease;
+}
+button.go:hover{background:#C08829; transform:translateY(-1px); box-shadow:0 3px 0 #75510F}
+button.go:active{transform:translateY(1px); box-shadow:0 1px 0 #75510F}
+button.go .arw{transition:transform .16s ease; font-size:18px; line-height:1}
+button.go:hover .arw{transform:translateX(4px)}
+button.go.armed{box-shadow:0 2px 0 #75510F, 0 0 0 5px rgba(168,118,31,.22)}
+button.go:disabled{background:#5A6480; box-shadow:none; transform:none; cursor:default}
+button.go:focus-visible{outline:2px solid #fff; outline-offset:3px}
+@media(prefers-reduced-motion:reduce){
+  button.go,button.go .arw{transition:none}
+  button.go:hover,button.go:active{transform:none}
+}
+.ghost{
+  background:none; border:1px solid #46516C; color:#C3CDDF; padding:14px 20px; font-size:14px;
+  font-family:var(--sans); cursor:pointer; margin-top:12px;
+}
+.ghost:hover{border-color:#7986A3; color:#fff}
+@media(max-width:820px){
+  .swgrid{grid-template-columns:1fr; gap:24px}
+  .ready{text-align:left}
+  button.go{width:100%; justify-content:center}
+  .ghost{width:100%}
+}
+.msg{margin-top:18px; font-size:13.5px; font-family:var(--mono); letter-spacing:.03em; line-height:1.6}
+.msg.err{color:#FFB4A6}
+.msg.ok{color:#8FD9BC}
+
+/* ---------- done ---------- */
+#done{display:none; max-width:var(--wrap); margin:0 auto; padding:80px 20px 100px; text-align:left}
+#done .kicker{font-family:var(--mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--brass)}
+#done h2{font-size:clamp(28px,5vw,42px); letter-spacing:-.03em; margin:14px 0 16px; line-height:1.08}
+#done p{color:var(--slate); font-size:16.5px; max-width:600px}
+
+footer{border-top:1px solid var(--rule); margin-top:20px}
+footer .inner{max-width:var(--wide); margin:0 auto; padding:26px 20px 60px; color:var(--muted); font-size:12.5px; font-family:var(--mono); letter-spacing:.04em; line-height:1.7}
+.hp{position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden}
+</style>
+</head>
+<body>
+
+<!-- ============ EDIT THESE FOUR LINES AND NOTHING ELSE ============ -->
+<script>
+const CONFIG = {
+  ENDPOINT      : "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE",
+  TEAM_NAME     : "the NEXT product team",   // shown as the sender, and in the privacy note
+  CONTACT_EMAIL : "next@example.com"          // only ever shown if a submission fails
+};
+</script>
+<!-- ================================================================ -->
+
+<div id="bar"><div class="inner">
+  <span class="lbl">Progress</span>
+  <div id="ticks"></div>
+  <span class="count" id="count">0 / 19</span>
+</div></div>
+
+<div id="live">
+
+<header class="mast"><div class="inner">
+  <div class="kicker">Product definition &middot; confidential</div>
+  <h1>NEXT
+    <span class="sub">One platform that runs and governs your AI agents and the applications they act on. It is in its conceptual phase, and we want to know whether it describes a problem you actually have.</span>
+  </h1>
+  <div class="meta">
+    <div>From<b id="m-sender">—</b></div>
+    <div>Questions<b>17, plus 2 optional</b></div>
+    <div>Time<b>About 7 minutes</b></div>
+    <div>Stage<b>Conceptual phase</b></div>
+  </div>
+</div></header>
+
+<div class="brief">
+  <p>Enterprises are deploying AI agents faster than they can govern them, and those agents increasingly act on ordinary business applications — including the legacy and packaged systems that will never be rewritten. NEXT is a single platform built to run and govern both.</p>
+  <p>The product is in its conceptual phase: the capability set is defined and under review, ahead of build. That is precisely why your answers carry weight now — they can still change what gets built, which will not be true in six months. Please answer as sceptically as you would in a real evaluation.</p>
+  <div class="callout">
+    <b>How your answers are handled.</b> Your responses are stored in a private spreadsheet controlled by <span id="m-sender-2">the product team</span> and used to shape product direction. They are not anonymous, not shared outside the team, and not used for marketing. Ask for your response to be deleted at any time and it will be. Only the first six fields are required — skip anything you'd rather not answer.
+  </div>
+</div>
+
+<main>
+  <form id="form" autocomplete="on" novalidate></form>
+
+  <div class="handoff">That's everything</div>
+
+  <div class="submitwrap">
+    <div class="swgrid">
+      <div>
+        <div class="swstep">Final step</div>
+        <h3>Send your answers</h3>
+        <p>Nothing is submitted until you press the button. If the send fails you'll be offered a file download, so nothing you typed is lost.</p>
+      </div>
+      <div>
+        <div class="ready" id="ready">0 of 19 answered</div>
+        <button class="go" id="send" type="button"><span class="lbl">Send my answers</span><span class="arw">&rarr;</span></button>
+        <button class="ghost" id="dl" type="button" style="display:none">Download my answers instead</button>
+      </div>
+    </div>
+    <div class="msg" id="msg"></div>
+  </div>
+</main>
+
+<footer><div class="inner">
+  NEXT &mdash; product validation survey &middot; v1.0<br>
+  Not a commercial offer. NEXT is in its conceptual phase and is not yet available to purchase.
+</div></footer>
+
+</div>
+
+<div id="done">
+  <div class="kicker">Received</div>
+  <h2>Thank you — that's exactly what we needed.</h2>
+  <p id="donetext">Your answers are recorded. If you agreed to a follow-up conversation, expect a note within the week to find 30 minutes. If anything occurs to you afterwards, just reply to the message that brought you here.</p>
+</div>
+
+<script>
+/* =========================================================================
+   SURVEY DEFINITION
+   Every question lives here. To change wording or options, edit this object
+   only — the rendering, validation, progress and payload all follow from it.
+   Grid rows carry a `trace` field mapping back to the capability matrix so
+   results can be read against it directly.
+   ========================================================================= */
+
+const SCALE_UC = [
+  {v:"1", label:"Not relevant",     sm:"No"},
+  {v:"2", label:"On the horizon",   sm:"Later"},
+  {v:"3", label:"Live problem now", sm:"Live"},
+  {v:"4", label:"Already funded",   sm:"Funded"}
+];
+const SCALE_CAP = [
+  {v:"1", label:"Not needed",   sm:"No"},
+  {v:"2", label:"Nice to have", sm:"Nice"},
+  {v:"3", label:"Important",    sm:"Important"},
+  {v:"4", label:"Critical",     sm:"Critical"},
+  {v:"0", label:"Can't judge",  sm:"Can't judge", out:true}
+];
+
+const USE_CASES = [
+  {id:"UC1", trace:"UC1", short:"Single application",
+   text:"Operating one enterprise application end to end — including packaged or legacy software — with AI agents doing the operational work under supervision."},
+  {id:"UC2", trace:"UC2", short:"Programme, shared knowledge base",
+   text:"A programme of five to ten related projects sharing one common knowledge base, where agents handle both the applications and the data feeding them."},
+  {id:"UC3", trace:"UC3", short:"Business area, one cloud",
+   text:"A multi-application system for one business area — some modern, some legacy — with several knowledge stores, on a single cloud, under joint governance."},
+  {id:"UC4", trace:"UC4", short:"Multi-cloud, federated",
+   text:"The same, but spanning multiple clouds and business domains, with federated governance across separately-run organisations."},
+  {id:"UC5", trace:"UC5", short:"Enterprise-wide incl. SaaS",
+   text:"Enterprise-wide agent workflows across finance, supply and sourcing — including packaged SaaS such as SAP and Salesforce — on a common data foundation."},
+  {id:"UC6", trace:"UC6", short:"Agents on your own SDLC",
+   text:"Coding and platform agents acting directly on your own repositories, pipelines and secrets, from the IDE and command line."},
+  {id:"UC7", trace:"UC7", short:"External partner agents",
+   text:"Partner, supplier or customer agents transacting with your systems across the organisational boundary."},
+  {id:"UC8", trace:"UC8", short:"Sovereign or air-gapped",
+   text:"Any of the above where the entire stack must stay inside one jurisdiction, or run with no external network access at all."}
+];
+
+const CAPABILITIES = [
+  {id:"C01", trace:"D1+D2", short:"Mixed estate on one runtime",
+   text:"One platform that runs your whole application estate — legacy virtual machines through to cloud-native — and runs the AI agents alongside it."},
+  {id:"C02", trace:"D4+D5", short:"Agent registry and single front door",
+   text:"A register of every agent — who owns it, what it may touch — including ones nobody declared, with every agent, model and tool call routed through one controlled path."},
+  {id:"C03", trace:"D3", short:"Governed access to enterprise data",
+   text:"Connecting agents to your enterprise data and knowledge so that the permissions from the source systems still apply."},
+  {id:"C04", trace:"D6", short:"Runtime guardrails and kill switch",
+   text:"Blocking unsafe actions as they happen, forcing human approval for high-risk ones, and stopping any agent instantly."},
+  {id:"C05", trace:"D7", short:"Workflows that survive failure",
+   text:"Long-running, multi-step agent workflows that resume correctly after a crash, timeout or restart instead of starting over."},
+  {id:"C06", trace:"D8", short:"Policy written once, enforced everywhere",
+   text:"Business rules and constraints written once in a readable form, then enforced automatically wherever agents run."},
+  {id:"C07", trace:"D9", short:"Tracing and quality evaluation",
+   text:"Seeing what an agent actually did and why, with continuous scoring of output quality and drift — not just the final answer."},
+  {id:"C08", trace:"D10", short:"Cost control and model routing",
+   text:"Real cost per agent, per task and per business unit, with hard budget caps and automatic routing of simple work to cheaper models."},
+  {id:"C09", trace:"D11", short:"Audit evidence for regulators",
+   text:"Evidence collected automatically and mapped to the frameworks you report against, so an audit is a query rather than a project."},
+  {id:"C10", trace:"D13", short:"Self-service without tickets",
+   text:"Teams launching governed agents and environments themselves from a catalogue, without raising a ticket or waiting on a platform team."}
+];
+
+const SECTIONS = [
+  {
+    n:"01", title:"About you and your estate",
+    note:"So results can be read by sector, scale and maturity rather than as one undifferentiated average.",
+    questions:[
+      {id:"contact", type:"contact", req:true, text:"Who are you?",
+       hint:"Required so we can weight answers by role and come back to you if you allow it. Nothing is published or shared.",
+       fields:[
+         {k:"name",    l:"Full name",   t:"text",  ac:"name"},
+         {k:"company", l:"Organisation",t:"text",  ac:"organization"},
+         {k:"title",   l:"Job title",   t:"text",  ac:"organization-title"},
+         {k:"email",   l:"Work email",  t:"email", ac:"email"}
+       ]},
+      {id:"role", type:"single", req:true, text:"Which best describes your remit?",
+       options:["CIO or CTO","Chief AI or Chief Data Officer","Head of platform or infrastructure engineering","CISO, risk or compliance","FinOps or cloud economics","Application or business owner","Enterprise or solution architect","Consulting or advisory","Something else"]},
+      {id:"industry", type:"single", req:true, text:"Which sector are you in?",
+       options:["Financial services or banking","Insurance","Healthcare or life sciences","Manufacturing or industrial","Telecom or media","Public sector or defence","Retail or consumer","Energy or utilities","Technology or software","Something else"]},
+      {id:"estate", type:"single", text:"Roughly how many business applications does your organisation run?",
+       hint:"A rough order of magnitude is fine. This is the single best predictor of whether the mixed-estate problem is real for you.",
+       options:["Fewer than 50","50 to 200","200 to 1,000","More than 1,000","Not sure"]},
+      {id:"maturity", type:"single", text:"Where are you with AI agents in production today?",
+       options:["Nothing in production yet","Pilots and proofs of concept only","A handful in production, governed team by team","Many in production, no central governance","Many in production, governed centrally"]}
+    ]
+  },
+  {
+    n:"02", title:"Do these situations look like yours?",
+    note:"Eight scopes at which agentic operations get bought, from one application up to an air-gapped estate. Rate each against your own organisation, not the industry in general.",
+    questions:[
+      {id:"usecases", type:"grid", text:"How does each of these map to your organisation?",
+       hint:"One rating per row. There is no right answer and a row of \u201cnot relevant\u201d is a useful finding.",
+       firstCol:"The situation", rows:USE_CASES, scale:SCALE_UC},
+      {id:"uc_priority", type:"single", text:"Which one is closest to what you actually have to solve in the next twelve months?",
+       options:USE_CASES.map(u=>u.id+" \u2014 "+u.short).concat(["None of these"])},
+      {id:"blocker", type:"text", text:"What is genuinely stopping you today?",
+       hint:"The most useful answer in the whole survey. Be blunt \u2014 budget, scepticism, security, skills, a bad previous experience, or that this simply isn't a priority.",
+       ph:"Type freely. One line is fine."}
+    ]
+  },
+  {
+    n:"03", title:"Three questions about the idea itself",
+    note:"These carry more weight than anything else here. They test the proposition rather than the feature set, and no technical detail is needed to answer them.",
+    questions:[
+      {id:"two_estate", type:"single", text:"The central claim \u2014 does it hold?",
+       quote:"\u201cOne platform that runs and governs both your existing applications and your AI agents: one policy model, one audit trail, one cost ledger across both.\u201d Most tools on the market govern the agents only, and leave the applications those agents act on somewhere else.",
+       options:[
+         "That is the whole point \u2014 governing the agents alone doesn't solve my problem",
+         "Valuable, but I would start with the agents and add the applications later",
+         "I would rather keep the application platform and agent governance separate",
+         "I don't see a strong connection between the two",
+         "Not sure"
+       ]},
+      {id:"finops", type:"single", text:"Where does the cost of running AI agents currently sit for you?",
+       options:[
+         "Already a board-level problem \u2014 I would buy for this reason alone",
+         "Growing, but not yet urgent",
+         "It matters, but it wouldn't be why I bought a platform",
+         "Not a problem \u2014 spend is small or already controlled",
+         "Not sure"
+       ]},
+      {id:"ops_service", type:"single", text:"Would you want the vendor to run day-to-day operations of this estate for you \u2014 starting human-led, becoming progressively automated?",
+       options:[
+         "Yes \u2014 running it is the harder half of the problem",
+         "Yes, but only through a defined transition period",
+         "No \u2014 we run our own operations",
+         "We already have a systems integrator doing this",
+         "Not sure"
+       ]}
+    ]
+  },
+  {
+    n:"04", title:"How you would actually buy it",
+    note:"The commercial reality, which usually decides more than the capability set does.",
+    questions:[
+      {id:"route", type:"single", text:"If you decided to solve this properly, what is the realistic route in your organisation?",
+       options:[
+         "Buy a specialist platform product",
+         "Build it ourselves on open source",
+         "Have a systems integrator build and run it for us",
+         "Use whatever our main cloud provider ships",
+         "Extend a platform we already own (ServiceNow, Databricks, SAP and similar)",
+         "We would not act on this in the next twelve to eighteen months"
+       ]},
+      {id:"budget", type:"single", text:"Whose budget would this come from?",
+       options:[
+         "CIO or platform engineering",
+         "CISO, risk or compliance",
+         "CFO or FinOps",
+         "A business unit or transformation programme",
+         "The AI or data office",
+         "No budget line exists for this yet"
+       ]},
+      {id:"deployment", type:"multi", text:"What deployment would you require?",
+       hint:"Select everything that would be acceptable. Selecting only the restrictive options is itself a useful signal.",
+       options:[
+         "Vendor-hosted software as a service",
+         "Hosted service, but inside our region only",
+         "Runs inside our own cloud account",
+         "On premises, in our own data centre",
+         "Sovereign or fully air-gapped"
+       ]},
+      {id:"price", type:"single", text:"If it met your requirements, what annual spend would be realistic?",
+       hint:"A band is enough. This is the number no published research can answer, which is why we're asking directly.",
+       options:["Under $100k","$100k to $250k","$250k to $500k","$500k to $1M","Over $1M","Can't say at this stage"]}
+    ]
+  },
+  {
+    n:"05", title:"Would you take this further?",
+    note:"",
+    questions:[
+      {id:"intent", type:"single", text:"If NEXT shipped as described here and met your requirements, what would you do?",
+       options:[
+         "Run a paid pilot",
+         "Take a briefing and evaluate it properly",
+         "Keep an eye on it",
+         "Not for us"
+       ]},
+      {id:"followup", type:"consent", text:"May we come back to you for a 30-minute conversation?",
+       hint:"Six to ten of these conversations settle questions no survey can.",
+       options:["Yes, happy to talk","No thank you"],
+       ta:"Anything you would want covered \u2014 or the reason this wouldn't work for you.",
+       taPh:"Optional."}
+    ]
+  },
+  {
+    n:"06", title:"Capability detail", optional:true,
+    gate:{
+      head:"One more section \u2014 for whoever owns platform decisions",
+      body:"Everything so far was about your organisation. This last part is about the product itself: ten capabilities to rate for importance. It is aimed at whoever owns platform, architecture or security decisions.",
+      body2:"If that is you, it takes about two minutes. If it is not, skip it \u2014 a considered blank is far more useful to us than a polite guess, and every row has a <b>can't judge</b> option for anything outside your remit.",
+      open:"I'll rate them",
+      skip:"Not my area \u2014 skip this"
+    },
+    questions:[
+      {id:"capabilities", type:"grid", text:"How important is each capability to you?",
+       hint:"One rating per row. Rating everything critical tells us nothing, so please discriminate \u2014 and use \u201ccan't judge\u201d rather than guessing.",
+       firstCol:"The capability", rows:CAPABILITIES, scale:SCALE_CAP},
+      {id:"top3", type:"multi", max:3, text:"If you could only have three of those ten, which three?",
+       hint:"Pick exactly three. This is the question that decides build order.",
+       options:CAPABILITIES.map(c=>c.id+" \u2014 "+c.short)}
+    ]
+  }
+];
+
+/* ========================== STATE + RENDER ========================== */
+
+const A = {};                       // answers
+const started = Date.now();
+const QIDS = [];                    // core questions only — the optional section is excluded
+SECTIONS.forEach(s=>{ if(!s.optional) s.questions.forEach(q=>QIDS.push(q)); });
+const TOTAL = QIDS.length;
+
+document.getElementById("m-sender").textContent = CONFIG.TEAM_NAME.replace(/^the\s+/i, "");
+document.getElementById("m-sender-2").textContent = CONFIG.TEAM_NAME;
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function el(html){ const t=document.createElement("template"); t.innerHTML=html.trim(); return t.content.firstElementChild; }
+
+/* Scrolling is a nicety, never a requirement — never let it break the flow. */
+function softScroll(node, block){
+  try{ if(node && typeof node.scrollIntoView === "function")
+    node.scrollIntoView({behavior:"smooth", block: block || "start"}); }catch(e){}
+}
+
+const form = document.getElementById("form");
+let qi = 0;
+
+SECTIONS.forEach(sec=>{
+  const s = el(`<section class="sec${sec.optional?" optional":""}">
+    <div class="sechead${sec.optional?" opt":""}">
+      <span class="num">${sec.n}</span><h2>${esc(sec.title)}</h2>
+      ${sec.optional?`<span class="opttag">Optional</span>`:""}
+    </div>
+    ${sec.note?`<p class="secnote">${esc(sec.note)}</p>`:""}
+  </section>`);
+
+  if(sec.optional && sec.gate){
+    const gate = el(`<div class="gatebox" id="capgate">
+      <h4>${esc(sec.gate.head)}</h4>
+      <p>${esc(sec.gate.body)}</p>
+      <p>${sec.gate.body2}</p>
+      <div class="gatebtns">
+        <button type="button" class="gopen">${esc(sec.gate.open)}</button>
+        <button type="button" class="gskip">${esc(sec.gate.skip)}</button>
+      </div>
+    </div>`);
+    const holder = el(`<div class="optbody" id="capbody" hidden></div>`);
+    const after  = el(`<div class="gateafter" id="capafter" hidden></div>`);
+
+    sec.questions.forEach(q=>{ qi++; holder.appendChild(renderQ(q, qi)); });
+
+    const openIt = () => {
+      A.cap_optin = "Opened";
+      gate.hidden = true; after.hidden = true; holder.hidden = false;
+      softScroll(holder, "start");
+    };
+    const skipIt = () => {
+      A.cap_optin = "Declined";
+      gate.hidden = true; holder.hidden = true; after.hidden = false;
+      after.innerHTML = `<span>Skipped — that's a perfectly good answer.</span>
+        <button type="button" class="glink">Open it anyway</button>`;
+      after.querySelector(".glink").onclick = openIt;
+      softScroll(document.querySelector(".submitwrap"), "center");
+    };
+    gate.querySelector(".gopen").addEventListener("click", openIt);
+    gate.querySelector(".gskip").addEventListener("click", skipIt);
+
+    s.appendChild(gate); s.appendChild(after); s.appendChild(holder);
+  } else {
+    sec.questions.forEach(q=>{ qi++; s.appendChild(renderQ(q, qi)); });
+  }
+  form.appendChild(s);
+});
+
+function renderQ(q, n){
+  const tag = q.req ? '<span class="req">Required</span>' : (q.type==="text"||q.type==="consent"||q.id==="price" ? '<span class="opt">Optional</span>' : "");
+  const card = el(`<div class="q" id="q-${q.id}">
+    <div class="qhead">
+      <span class="qnum">${String(n).padStart(2,"0")}</span>
+      <div style="flex:1">
+        <p class="qtext">${esc(q.text)}${tag}</p>
+        ${q.quote?`<p class="qhint quote">${esc(q.quote)}</p>`:""}
+        ${q.hint?`<p class="qhint">${esc(q.hint)}</p>`:""}
+      </div>
+    </div>
+    <div class="qbody"></div>
+  </div>`);
+  const body = card.querySelector(".qbody");
+
+  if(q.type==="contact"){
+    const wrap = el(`<div class="fields"></div>`);
+    q.fields.forEach(f=>{
+      const fw = el(`<div class="field" data-k="${f.k}">
+        <label for="f-${f.k}">${esc(f.l)}</label>
+        <input id="f-${f.k}" type="${f.t}" autocomplete="${f.ac}" spellcheck="false">
+      </div>`);
+      fw.querySelector("input").addEventListener("input", e=>{
+        A.contact = A.contact || {};
+        A.contact[f.k] = e.target.value.trim();
+        fw.classList.remove("bad");
+        tick();
+      });
+      wrap.appendChild(fw);
+    });
+    body.appendChild(wrap);
+  }
+
+  if(q.type==="single" || q.type==="consent"){
+    const wrap = el(`<div class="choices"></div>`);
+    q.options.forEach((o,i)=>{
+      const c = el(`<label class="choice"><input type="radio" name="${q.id}" value="${esc(o)}"><span>${esc(o)}</span></label>`);
+      c.querySelector("input").addEventListener("change", ()=>{
+        A[q.id] = o;
+        wrap.querySelectorAll(".choice").forEach(x=>x.classList.remove("on"));
+        c.classList.add("on");
+        tick();
+      });
+      wrap.appendChild(c);
+    });
+    body.appendChild(wrap);
+    if(q.type==="consent"){
+      const ta = el(`<div style="margin-top:14px">
+        <label class="mono" style="display:block;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">${esc(q.ta)}</label>
+        <textarea placeholder="${esc(q.taPh||"")}"></textarea></div>`);
+      ta.querySelector("textarea").addEventListener("input", e=>{ A[q.id+"_note"] = e.target.value; });
+      body.appendChild(ta);
+    }
+  }
+
+  if(q.type==="multi"){
+    const wrap = el(`<div class="choices"></div>`);
+    A[q.id] = [];
+    q.options.forEach(o=>{
+      const c = el(`<label class="choice"><input type="checkbox" value="${esc(o)}"><span>${esc(o)}</span></label>`);
+      const inp = c.querySelector("input");
+      inp.addEventListener("change", ()=>{
+        const cur = A[q.id];
+        if(inp.checked){
+          if(q.max && cur.length >= q.max){ inp.checked=false; return; }
+          cur.push(o);
+        } else {
+          const ix = cur.indexOf(o); if(ix>-1) cur.splice(ix,1);
+        }
+        c.classList.toggle("on", inp.checked);
+        if(q.max){
+          const full = cur.length >= q.max;
+          wrap.querySelectorAll(".choice").forEach(x=>{
+            const box = x.querySelector("input");
+            x.classList.toggle("dim", full && !box.checked);
+            box.disabled = false;
+          });
+          note.textContent = cur.length + " of " + q.max + " selected";
+          note.style.color = full ? "var(--ok)" : "var(--muted)";
+        }
+        tick();
+      });
+      wrap.appendChild(c);
+    });
+    body.appendChild(wrap);
+    var note = el(`<div class="pick-note"></div>`);
+    if(q.max){ note.textContent = "0 of " + q.max + " selected"; body.appendChild(note); }
+  }
+
+  if(q.type==="grid"){
+    A[q.id] = {};
+    const cols = q.scale.length;
+    const gw = el(`<div class="gridwrap"><div class="gridstat" id="gs-${q.id}">0 of ${q.rows.length} rated</div></div>`);
+    const tb = el(`<div class="gtable" style="grid-template-columns:minmax(0,1fr) repeat(${cols},96px)"></div>`);
+    const head = el(`<div class="ghead"></div>`);
+    head.appendChild(el(`<div class="gh first">${esc(q.firstCol || "Item")}</div>`));
+    q.scale.forEach(s=> head.appendChild(el(`<div class="gh">${esc(s.label)}</div>`)));
+    tb.appendChild(head);
+
+    q.rows.forEach(r=>{
+      const row = el(`<div class="grow"></div>`);
+      row.appendChild(el(`<div class="gl"><b>${esc(r.id)} · ${esc(r.short)}</b>${esc(r.text)}</div>`));
+      const cells = el(`<div class="gcells"></div>`);
+      q.scale.forEach(s=>{
+        const cell = el(`<div class="gc${s.out?" out":""}"></div>`);
+        const b = el(`<button type="button" class="gbtn${s.out?" out":""}" data-v="${s.v}" aria-label="${esc(r.id)}: ${esc(s.label)}"><span class="lg">${esc(s.label)}</span><span class="sm">${esc(s.sm||s.label)}</span></button>`);
+        b.addEventListener("click", ()=>{
+          A[q.id][r.id] = s.label;
+          row.querySelectorAll(".gbtn").forEach(x=>x.classList.remove("on"));
+          b.classList.add("on");
+          const done = Object.keys(A[q.id]).length;
+          const gs = document.getElementById("gs-"+q.id);
+          gs.textContent = done + " of " + q.rows.length + " rated";
+          gs.classList.toggle("done", done === q.rows.length);
+          tick();
+        });
+        cell.appendChild(b);
+        cells.appendChild(cell);
+      });
+      row.appendChild(cells);
+      tb.appendChild(row);
+    });
+    gw.appendChild(tb);
+    body.appendChild(gw);
+    card.classList.add("wide");
+  }
+
+  if(q.type==="text"){
+    const ta = el(`<textarea placeholder="${esc(q.ph||"")}"></textarea>`);
+    ta.addEventListener("input", e=>{ A[q.id]=e.target.value; tick(); });
+    body.appendChild(ta);
+  }
+
+  return card;
+}
+
+/* honeypot */
+const hp = el(`<div class="hp"><label>Leave this empty<input id="hp" tabindex="-1" autocomplete="off"></label></div>`);
+form.appendChild(hp);
+
+/* ---------- progress ---------- */
+const ticksEl = document.getElementById("ticks");
+QIDS.forEach(()=> ticksEl.appendChild(el("<i></i>")));
+
+function answered(q){
+  const v = A[q.id];
+  if(q.type==="contact") return !!(A.contact && A.contact.name && A.contact.company && A.contact.title && A.contact.email);
+  if(q.type==="grid")    return v && Object.keys(v).length === q.rows.length;
+  if(q.type==="multi")   return v && v.length > 0;
+  if(q.type==="text")    return !!(v && v.trim().length > 2);
+  return !!v;
+}
+function requiredDone(){
+  const c = A.contact || {};
+  return !!(c.name && c.company && c.title && c.email && A.role && A.industry);
+}
+function tick(){
+  let n=0;
+  QIDS.forEach((q,i)=>{
+    const ok = answered(q);
+    if(ok) n++;
+    ticksEl.children[i].classList.toggle("on", ok);
+  });
+  document.getElementById("count").textContent = n + " / " + TOTAL;
+
+  const ready = document.getElementById("ready");
+  const btn   = document.getElementById("send");
+  if(!ready || !btn) return;
+  const armed = requiredDone();
+  btn.classList.toggle("armed", armed);
+  if(n === TOTAL)      ready.textContent = "All " + TOTAL + " answered — ready to send";
+  else if(armed)       ready.textContent = (TOTAL - n) + " still blank — you can send anyway";
+  else                 ready.textContent = n + " of " + TOTAL + " answered";
+  ready.classList.toggle("set", armed);
+}
+function setSendLabel(t){
+  const l = document.querySelector("#send .lbl");
+  if(l) l.textContent = t;
+}
+tick();
+
+/* ---------- payload ---------- */
+function flatten(){
+  const c = A.contact || {};
+  const out = {
+    submitted_at : new Date().toISOString(),
+    minutes_taken: Math.round((Date.now()-started)/6000)/10,
+    name: c.name||"", company: c.company||"", title: c.title||"", email: c.email||"",
+    role: A.role||"", industry: A.industry||"", estate: A.estate||"", maturity: A.maturity||""
+  };
+  USE_CASES.forEach(u => out["uc_"+u.id] = (A.usecases && A.usecases[u.id]) || "");
+  out.uc_priority = A.uc_priority || "";
+  out.blocker     = A.blocker || "";
+  CAPABILITIES.forEach(cp => out["cap_"+cp.id] = (A.capabilities && A.capabilities[cp.id]) || "");
+  out.cap_optin   = A.cap_optin || "";
+  out.top3        = (A.top3||[]).join(" | ");
+  out.two_estate  = A.two_estate || "";
+  out.finops      = A.finops || "";
+  out.ops_service = A.ops_service || "";
+  out.route       = A.route || "";
+  out.budget      = A.budget || "";
+  out.deployment  = (A.deployment||[]).join(" | ");
+  out.price       = A.price || "";
+  out.intent      = A.intent || "";
+  out.followup    = A.followup || "";
+  out.followup_note = A.followup_note || "";
+  return out;
+}
+
+/* ---------- submit ---------- */
+const msg  = document.getElementById("msg");
+const send = document.getElementById("send");
+const dl   = document.getElementById("dl");
+
+function fail(text){ msg.className="msg err"; msg.textContent = text; }
+
+send.addEventListener("click", async ()=>{
+  msg.className="msg"; msg.textContent="";
+  if(document.getElementById("hp").value){ return; }
+
+  const c = A.contact || {};
+  const missing = ["name","company","title","email"].filter(k => !c[k]);
+  if(missing.length || !A.role || !A.industry){
+    missing.forEach(k => document.querySelector('.field[data-k="'+k+'"]').classList.add("bad"));
+    fail("Six fields are required: name, organisation, job title, work email, remit and sector.");
+    softScroll(document.getElementById("q-contact"), "center");
+    return;
+  }
+  if(!/^[^@\s]+@[^@\s.]+\.[^@\s]+$/.test(c.email)){
+    document.querySelector('.field[data-k="email"]').classList.add("bad");
+    fail("That email address doesn't look complete.");
+    return;
+  }
+
+  const blank = QIDS.filter(q => !answered(q)).length;
+  if(blank > 0 && !send.dataset.confirmed){
+    send.dataset.confirmed = "1";
+    msg.className="msg";
+    msg.innerHTML = blank + " question" + (blank>1?"s are":" is") + " still blank. Press send again to submit as is, or scroll back.";
+    return;
+  }
+
+  send.disabled = true; setSendLabel("Sending…");
+  const payload = flatten();
+
+  try{
+    if(!CONFIG.ENDPOINT || CONFIG.ENDPOINT.indexOf("PASTE_") === 0) throw new Error("no endpoint configured");
+    const res = await fetch(CONFIG.ENDPOINT, {
+      method:"POST",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},   // keeps it a simple request — no CORS preflight
+      body: JSON.stringify(payload)
+    });
+    const j = await res.json();
+    if(!j.ok) throw new Error(j.error || "rejected");
+    document.getElementById("live").style.display="none";
+    document.getElementById("bar").style.display="none";
+    document.getElementById("done").style.display="block";
+    window.scrollTo(0,0);
+  }catch(err){
+    send.disabled = false; setSendLabel("Try sending again");
+    dl.style.display = "inline-block";
+    fail("That didn't send. Try again, or download your answers and email them to " + CONFIG.CONTACT_EMAIL + " — nothing you typed is lost.");
+    dl.onclick = ()=>{
+      const blob = new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "next-survey-" + (payload.company||"response").replace(/\W+/g,"-").toLowerCase() + ".json";
+      a.click();
+    };
+  }
+});
+</script>
+</body>
+</html>

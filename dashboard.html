@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>NEXT — Survey Results</title>
+<style>
+:root{
+  --ink:#131B2A; --ink-2:#20293D; --slate:#48546C; --muted:#6E7A8E;
+  --paper:#F2F4F8; --card:#FFFFFF; --rule:#D8DDE6; --rule-2:#EBEEF3;
+  --brass:#A8761F; --brass-soft:#F3E9D4;
+  --r1:#E4E8EF; --r2:#C6CEDB; --r3:#7E8CA5; --r4:#2A3550;
+  --ok:#2C6A52; --warn:#8C3A2E;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+}
+*{box-sizing:border-box}
+body{margin:0; font-family:var(--sans); background:var(--paper); color:var(--ink); font-size:15px; line-height:1.5}
+.mono{font-family:var(--mono)}
+.wrap{max-width:1180px; margin:0 auto; padding:0 20px}
+
+header.top{background:var(--ink); color:#EEF1F6; padding:26px 0 24px; border-bottom:3px solid var(--brass)}
+header.top .row{display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap}
+header.top h1{margin:0; font-size:25px; letter-spacing:-.02em; font-weight:650}
+header.top .kick{font-family:var(--mono); font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--brass); margin-bottom:7px}
+header.top .stamp{font-family:var(--mono); font-size:11px; color:#8D9AB2; letter-spacing:.05em; text-align:right}
+
+/* gate */
+#gate{max-width:560px; margin:70px auto; background:var(--card); border:1px solid var(--rule); padding:30px}
+#gate h2{margin:0 0 6px; font-size:19px; letter-spacing:-.01em}
+#gate p{color:var(--muted); font-size:14px; margin:0 0 20px}
+#gate label{display:block; font-family:var(--mono); font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--muted); margin:16px 0 6px}
+#gate input[type=text],#gate input[type=password]{width:100%; padding:11px 12px; font-family:var(--mono); font-size:13px; border:1px solid var(--rule); background:#FCFDFE}
+#gate input:focus{outline:2px solid var(--brass); outline-offset:-1px}
+.btn{background:var(--ink); color:#fff; border:none; padding:12px 22px; font-size:14px; font-weight:600; cursor:pointer; font-family:var(--sans)}
+.btn:hover{background:#0C1320}
+.btn.brass{background:var(--brass)} .btn.brass:hover{background:#916518}
+.btn.small{padding:8px 14px; font-size:12.5px}
+.btn:focus-visible{outline:2px solid var(--brass); outline-offset:2px}
+.or{display:flex; align-items:center; gap:12px; margin:26px 0 4px; color:var(--muted); font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase}
+.or:before,.or:after{content:""; flex:1; height:1px; background:var(--rule)}
+.gatemsg{margin-top:14px; font-family:var(--mono); font-size:12px; color:var(--warn)}
+
+#app{display:none; padding-bottom:70px}
+
+/* filters */
+.filters{background:var(--card); border-bottom:1px solid var(--rule); position:sticky; top:0; z-index:20}
+.filters .wrap{display:flex; gap:22px; flex-wrap:wrap; align-items:center; padding-top:11px; padding-bottom:11px}
+.fgroup{display:flex; align-items:center; gap:7px; flex-wrap:wrap}
+.fgroup > b{font-family:var(--mono); font-size:10px; letter-spacing:.13em; text-transform:uppercase; color:var(--muted); font-weight:400}
+.chip{
+  font-family:var(--mono); font-size:11px; letter-spacing:.04em; padding:5px 10px; border:1px solid var(--rule);
+  background:#FCFDFE; cursor:pointer; color:var(--slate); white-space:nowrap;
+}
+.chip:hover{border-color:var(--r3)}
+.chip.on{background:var(--ink); color:#fff; border-color:var(--ink)}
+.filters .spacer{flex:1}
+
+/* sections */
+h2.sh{
+  margin:44px 0 4px; font-size:11px; font-family:var(--mono); letter-spacing:.18em; text-transform:uppercase;
+  color:var(--brass); padding-bottom:9px; border-bottom:2px solid var(--ink);
+}
+.subnote{color:var(--muted); font-size:13.5px; margin:10px 0 0}
+
+/* headline stats */
+.stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1px; background:var(--rule); border:1px solid var(--rule); margin-top:16px}
+.stat{background:var(--card); padding:17px 18px}
+.stat .k{font-family:var(--mono); font-size:10px; letter-spacing:.13em; text-transform:uppercase; color:var(--muted)}
+.stat .v{font-size:30px; font-weight:650; letter-spacing:-.03em; margin-top:6px; font-variant-numeric:tabular-nums; line-height:1}
+.stat .n{font-size:12.5px; color:var(--muted); margin-top:6px; line-height:1.4}
+
+/* findings */
+.findings{background:var(--card); border:1px solid var(--rule); border-left:3px solid var(--brass); margin-top:16px; padding:6px 0}
+.finding{display:flex; gap:14px; padding:12px 20px; border-bottom:1px solid var(--rule-2); align-items:baseline}
+.finding:last-child{border-bottom:none}
+.finding .tagl{font-family:var(--mono); font-size:9.5px; letter-spacing:.13em; text-transform:uppercase; color:#fff; background:var(--slate); padding:3px 7px; white-space:nowrap; flex:none}
+.finding .tagl.risk{background:var(--warn)}
+.finding .tagl.good{background:var(--ok)}
+.finding .tagl.watch{background:var(--brass)}
+.finding p{margin:0; font-size:14.5px; color:var(--ink)}
+.finding p em{color:var(--muted); font-style:normal}
+
+/* card + charts */
+.card{background:var(--card); border:1px solid var(--rule); margin-top:16px; padding:20px 22px}
+.card h3{margin:0 0 3px; font-size:16px; letter-spacing:-.01em}
+.card .cnote{color:var(--muted); font-size:13px; margin:0 0 16px}
+.cols2{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+@media(max-width:900px){.cols2{grid-template-columns:1fr}}
+
+.brow{display:grid; grid-template-columns:minmax(140px,1.5fr) 3fr 62px; gap:12px; align-items:center; padding:6px 0}
+.brow .bl{font-size:13.5px; line-height:1.35}
+.brow .bl small{display:block; font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; color:var(--muted); margin-top:2px}
+.track{background:var(--rule-2); height:22px; position:relative; overflow:hidden}
+.fill{height:100%; background:var(--r3)}
+.fill.deep{background:var(--r4)}
+.fill.brass{background:var(--brass)}
+.brow .bv{font-family:var(--mono); font-size:12px; text-align:right; color:var(--slate); font-variant-numeric:tabular-nums}
+
+/* stacked */
+.stack{display:flex; height:24px; background:var(--rule-2)}
+.stack span{display:block; height:100%}
+.stack .s1{background:var(--r1)} .stack .s2{background:var(--r2)}
+.stack .s3{background:var(--r3)} .stack .s4{background:var(--r4)}
+.stack .s0{background:repeating-linear-gradient(45deg,#E9ECF1,#E9ECF1 3px,#D5DAE3 3px,#D5DAE3 6px)}
+.legend i.hatch{background:repeating-linear-gradient(45deg,#E9ECF1,#E9ECF1 3px,#D5DAE3 3px,#D5DAE3 6px)}
+.brow.cap{grid-template-columns:minmax(140px,1.5fr) 3fr 52px 62px}
+.brow .bn{font-family:var(--mono); font-size:11px; text-align:right; color:var(--muted); font-variant-numeric:tabular-nums}
+.brow .bn.hot{color:var(--warn)}
+.legend{display:flex; gap:16px; flex-wrap:wrap; margin:2px 0 14px}
+.legend i{display:inline-block; width:11px; height:11px; margin-right:6px; vertical-align:-1px}
+.legend span{font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
+
+/* text answers */
+.quote{border-left:2px solid var(--rule); padding:2px 0 2px 14px; margin:0 0 18px}
+.quote p{margin:0 0 5px; font-size:14.5px; color:var(--ink)}
+.quote .who{font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; color:var(--muted)}
+
+/* table */
+table{width:100%; border-collapse:collapse; font-size:13px}
+th{
+  text-align:left; font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--muted); font-weight:400; padding:8px 10px 8px 0; border-bottom:1px solid var(--rule);
+}
+td{padding:9px 10px 9px 0; border-bottom:1px solid var(--rule-2); vertical-align:top}
+tr.hot td{background:#FBF7EF}
+td .pill{font-family:var(--mono); font-size:9.5px; letter-spacing:.06em; padding:2px 6px; background:var(--brass); color:#fff}
+.scroll{overflow-x:auto}
+
+.empty{color:var(--muted); font-size:14px; font-style:italic; padding:8px 0}
+footer.f{border-top:1px solid var(--rule); margin-top:44px; padding:22px 0 60px; font-family:var(--mono); font-size:11.5px; color:var(--muted); letter-spacing:.04em; line-height:1.8}
+@media print{ .filters,#gate,.noprint{display:none!important} body{background:#fff} .card,.stats{break-inside:avoid} }
+</style>
+</head>
+<body>
+
+<header class="top"><div class="wrap"><div class="row">
+  <div><div class="kick">Concept validation &middot; internal</div><h1>NEXT — survey results</h1></div>
+  <div class="stamp" id="stamp">no data loaded</div>
+</div></div></header>
+
+<!-- ============ GATE ============ -->
+<div id="gate">
+  <h2>Load the responses</h2>
+  <p>Two ways in. Live is easiest; the file route always works, including offline.</p>
+
+  <label for="ep">Apps Script web app URL</label>
+  <input type="text" id="ep" placeholder="https://script.google.com/macros/s/…/exec" spellcheck="false">
+  <label for="key">Admin key</label>
+  <input type="password" id="key" placeholder="the ADMIN_KEY from your script" spellcheck="false">
+  <div style="margin-top:18px"><button class="btn brass" id="load">Load live results</button></div>
+
+  <div class="or">or</div>
+  <label for="file">Open an exported file</label>
+  <input type="file" id="file" accept=".csv,.json,text/csv,application/json">
+  <p style="margin-top:10px; font-size:13px">In the Sheet: <b>File → Download → Comma-separated values</b>, then open it here.</p>
+
+  <div class="gatemsg" id="gatemsg"></div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app">
+  <div class="filters noprint"><div class="wrap" id="filters"></div></div>
+  <div class="wrap" id="body"></div>
+  <div class="wrap"><footer class="f">
+    NEXT survey dashboard &middot; all figures recomputed from the filtered set on every change.<br>
+    Responses contain named individuals and work email addresses. Do not circulate this page or its exports outside the team.
+  </footer></div>
+</div>
+
+<script>
+/* ===================== DEFINITIONS (mirror the survey) ===================== */
+
+const UC = [
+  ["UC1","Single application"],["UC2","Programme, shared KB"],["UC3","Business area, one cloud"],
+  ["UC4","Multi-cloud, federated"],["UC5","Enterprise-wide incl. SaaS"],["UC6","Agents on own SDLC"],
+  ["UC7","External partner agents"],["UC8","Sovereign or air-gapped"]
+];
+const UC_SCALE = ["Not relevant","On the horizon","Live problem now","Already funded"];
+
+const CAP = [
+  ["C01","Mixed estate on one runtime","D1+D2"],
+  ["C02","Agent registry & front door","D4+D5"],
+  ["C03","Governed access to data","D3"],
+  ["C04","Guardrails & kill switch","D6"],
+  ["C05","Workflows that survive failure","D7"],
+  ["C06","Policy written once","D8"],
+  ["C07","Tracing & evaluation","D9"],
+  ["C08","Cost control & routing","D10"],
+  ["C09","Audit evidence","D11"],
+  ["C10","Self-service without tickets","D13"]
+];
+const CAP_SCALE  = ["Not needed","Nice to have","Important","Critical"];
+const CANT_JUDGE = "Can't judge";
+
+const FILTERS = [
+  {k:"role",     label:"Remit"},
+  {k:"industry", label:"Sector"},
+  {k:"maturity", label:"Agent maturity"},
+  {k:"estate",   label:"Estate size"}
+];
+
+/* ===================== STATE ===================== */
+
+let ALL = [];            // every response
+let ACTIVE = {};         // {field: Set(values)}
+const $  = s => document.querySelector(s);
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const pct = (n,d) => d ? Math.round(n/d*100) : 0;
+
+/* ===================== LOADING ===================== */
+
+$("#load").addEventListener("click", async () => {
+  const url = $("#ep").value.trim(), key = $("#key").value.trim();
+  if(!url || !key){ gateErr("Both the web app URL and the admin key are needed."); return; }
+  gateErr("Loading…", true);
+  try{
+    const sep = url.indexOf("?") > -1 ? "&" : "?";
+    const res = await fetch(url + sep + "key=" + encodeURIComponent(key));
+    const j = await res.json();
+    if(!j.ok) throw new Error(j.error === "unauthorised" ? "That key was rejected by the script." : j.error);
+    if(!j.rows || !j.rows.length) throw new Error("Connected fine, but there are no responses yet.");
+    start(j.rows, "live");
+  }catch(err){
+    gateErr(String(err.message || err) + " — if the browser blocked the request, use the file route below.");
+  }
+});
+
+$("#file").addEventListener("change", e => {
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try{
+      const txt = String(r.result).trim();
+      const rows = txt.charAt(0) === "{" || txt.charAt(0) === "["
+        ? (JSON.parse(txt).rows || JSON.parse(txt))
+        : parseCSV(txt);
+      if(!rows.length) throw new Error("That file has no rows in it.");
+      start(rows, f.name);
+    }catch(err){ gateErr("Couldn't read that file: " + (err.message||err)); }
+  };
+  r.readAsText(f);
+});
+
+function gateErr(m, quiet){ const g=$("#gatemsg"); g.textContent=m; g.style.color = quiet ? "var(--muted)" : "var(--warn)"; }
+
+function parseCSV(text){
+  const rows=[]; let row=[], cell="", q=false;
+  for(let i=0;i<text.length;i++){
+    const ch=text[i], nx=text[i+1];
+    if(q){
+      if(ch === '"' && nx === '"'){ cell+='"'; i++; }
+      else if(ch === '"'){ q=false; }
+      else cell+=ch;
+    } else {
+      if(ch === '"') q=true;
+      else if(ch === ","){ row.push(cell); cell=""; }
+      else if(ch === "\n"){ row.push(cell); rows.push(row); row=[]; cell=""; }
+      else if(ch !== "\r") cell+=ch;
+    }
+  }
+  if(cell.length || row.length){ row.push(cell); rows.push(row); }
+  const head = rows.shift().map(h=>h.trim());
+  return rows.filter(r=>r.some(c=>String(c).trim()!=="")).map(r=>{
+    const o={}; head.forEach((h,i)=> o[h] = r[i]===undefined ? "" : r[i]); return o;
+  });
+}
+
+function start(rows, source){
+  ALL = rows.filter(r => (r.company||r.name||"").toString().trim() !== "");
+  FILTERS.forEach(f => ACTIVE[f.k] = new Set());
+  $("#gate").style.display="none";
+  $("#app").style.display="block";
+  const dates = ALL.map(r => (r.received_at||r.submitted_at||"").slice(0,10)).filter(Boolean).sort();
+  $("#stamp").innerHTML = ALL.length + " responses &middot; " +
+    (dates.length ? dates[0] + " to " + dates[dates.length-1] : "undated") +
+    "<br>source: " + esc(source);
+  buildFilters();
+  render();
+}
+
+/* ===================== FILTERS ===================== */
+
+function buildFilters(){
+  const box = $("#filters"); box.innerHTML = "";
+  FILTERS.forEach(f => {
+    const vals = [...new Set(ALL.map(r => (r[f.k]||"").trim()).filter(Boolean))].sort();
+    if(vals.length < 2) return;
+    const g = document.createElement("div"); g.className = "fgroup";
+    g.innerHTML = "<b>" + esc(f.label) + "</b>";
+    vals.forEach(v => {
+      const c = document.createElement("button");
+      c.className="chip"; c.type="button";
+      c.textContent = v.length > 26 ? v.slice(0,24)+"…" : v;
+      c.title = v;
+      c.onclick = () => {
+        ACTIVE[f.k].has(v) ? ACTIVE[f.k].delete(v) : ACTIVE[f.k].add(v);
+        c.classList.toggle("on");
+        render();
+      };
+      g.appendChild(c);
+    });
+    box.appendChild(g);
+  });
+  const sp = document.createElement("div"); sp.className="spacer"; box.appendChild(sp);
+  const clear = document.createElement("button");
+  clear.className="chip"; clear.textContent="Clear filters"; clear.type="button";
+  clear.onclick = () => { FILTERS.forEach(f=>ACTIVE[f.k].clear()); box.querySelectorAll(".chip.on").forEach(c=>c.classList.remove("on")); render(); };
+  box.appendChild(clear);
+  const csv = document.createElement("button");
+  csv.className="chip"; csv.textContent="Export filtered CSV"; csv.type="button";
+  csv.onclick = exportCSV;
+  box.appendChild(csv);
+}
+
+function filtered(){
+  return ALL.filter(r => FILTERS.every(f => {
+    const s = ACTIVE[f.k]; return s.size === 0 || s.has((r[f.k]||"").trim());
+  }));
+}
+
+/* ===================== HELPERS ===================== */
+
+function tally(rows, field){
+  const m = new Map();
+  rows.forEach(r => { const v=(r[field]||"").trim(); if(v) m.set(v,(m.get(v)||0)+1); });
+  return [...m.entries()].sort((a,b)=>b[1]-a[1]);
+}
+function tallyMulti(rows, field){
+  const m = new Map();
+  rows.forEach(r => String(r[field]||"").split("|").map(s=>s.trim()).filter(Boolean)
+    .forEach(v => m.set(v,(m.get(v)||0)+1)));
+  return [...m.entries()].sort((a,b)=>b[1]-a[1]);
+}
+function dist(rows, field, scale){
+  const c = scale.map(()=>0); let n=0;
+  rows.forEach(r => { const i = scale.indexOf((r[field]||"").trim()); if(i>-1){ c[i]++; n++; } });
+  const mean = n ? c.reduce((s,v,i)=>s+v*(i+1),0)/n : 0;
+  return {counts:c, n, mean};
+}
+function share(v,d){ return d ? (v/d*100) : 0; }
+
+/* "Can't judge" is answered data, not missing data — but it must never enter a mean.
+   rated = people who placed a value on the scale; cant = people who declined to. */
+function distCap(rows, field){
+  const counts = CAP_SCALE.map(()=>0);
+  let cant = 0;
+  rows.forEach(r => {
+    const v = (r[field]||"").trim();
+    if(v === CANT_JUDGE){ cant++; return; }
+    const i = CAP_SCALE.indexOf(v);
+    if(i > -1) counts[i]++;
+  });
+  const rated = counts.reduce((a,b)=>a+b,0);
+  return {
+    counts, rated, cant, answered: rated + cant,
+    mean: rated ? counts.reduce((s,v,i)=>s+v*(i+1),0)/rated : 0
+  };
+}
+
+function barRows(items, total, opts){
+  opts = opts || {};
+  return items.map(([label,count]) => `
+    <div class="brow">
+      <div class="bl">${esc(label)}</div>
+      <div class="track"><div class="fill ${opts.cls||""}" style="width:${share(count,total).toFixed(1)}%"></div></div>
+      <div class="bv">${count} · ${pct(count,total)}%</div>
+    </div>`).join("");
+}
+
+function card(title, note, inner){
+  return `<div class="card"><h3>${esc(title)}</h3>${note?`<p class="cnote">${esc(note)}</p>`:""}${inner}</div>`;
+}
+function legend(labels){
+  return `<div class="legend">` + labels.map((l,i)=>
+    l === CANT_JUDGE
+      ? `<span><i class="hatch"></i>${esc(l)}</span>`
+      : `<span><i style="background:var(--r${i+1})"></i>${esc(l)}</span>`).join("") + `</div>`;
+}
+
+/* ===================== RENDER ===================== */
+
+function render(){
+  const R = filtered(), N = R.length;
+  const B = $("#body");
+  if(!N){ B.innerHTML = `<h2 class="sh">No matches</h2><p class="subnote">No responses match the current filters. Clear one and try again.</p>`; return; }
+
+  B.innerHTML =
+      headline(R,N)
+    + findings(R,N)
+    + useCases(R,N)
+    + capabilities(R,N)
+    + strategic(R,N)
+    + commercial(R,N)
+    + verbatim(R)
+    + respondents(R);
+}
+
+/* ---------- headline ---------- */
+function headline(R,N){
+  const companies = new Set(R.map(r=>(r.company||"").trim().toLowerCase())).size;
+  const pilots  = R.filter(r=>/paid pilot/i.test(r.intent||"")).length;
+  const talk    = R.filter(r=>/^yes/i.test(r.followup||"")).length;
+  const prices  = tally(R,"price").filter(([v])=>!/can't say/i.test(v));
+  const modal   = prices.length ? prices[0][0] : "—";
+  const opened  = R.filter(r=>/opened/i.test(r.cap_optin||"") ||
+                    CAP.some(c=>(r["cap_"+c[0]]||"").trim())).length;
+
+  return `<h2 class="sh">Where this stands</h2>
+  <div class="stats">
+    <div class="stat"><div class="k">Responses</div><div class="v">${N}</div><div class="n">${companies} organisation${companies===1?"":"s"}</div></div>
+    <div class="stat"><div class="k">Pilot candidates</div><div class="v">${pilots}</div><div class="n">would run a paid pilot</div></div>
+    <div class="stat"><div class="k">Agreed to talk</div><div class="v">${talk}</div><div class="n">named below, with emails</div></div>
+    <div class="stat"><div class="k">Modal price band</div><div class="v" style="font-size:21px">${esc(modal)}</div><div class="n">${prices.length? pct(prices[0][1],N)+"% of respondents":"no bands given"}</div></div>
+    <div class="stat"><div class="k">Rated capabilities</div><div class="v">${opened}</div><div class="n">${pct(opened,N)}% opened the optional section</div></div>
+  </div>`;
+}
+
+/* ---------- auto findings ---------- */
+function findings(R,N){
+  const out = [];
+  const push = (tag,cls,text) => out.push(`<div class="finding"><span class="tagl ${cls}">${tag}</span><p>${text}</p></div>`);
+
+  if(N < 8) push("Caution","risk",
+    `Only <b>${N}</b> responses in this view. Everything below is directional at best, and any split under five responses is noise rather than signal.`);
+
+  // use cases
+  const ucScore = UC.map(([id,name])=>{
+    const d = dist(R,"uc_"+id,UC_SCALE);
+    return {id,name,live:d.counts[2]+d.counts[3], n:d.n, mean:d.mean};
+  }).filter(u=>u.n>0);
+  if(ucScore.length){
+    const best = [...ucScore].sort((a,b)=>b.live-a.live)[0];
+    const worst= [...ucScore].sort((a,b)=>a.live-b.live)[0];
+    push("Use cases","good",
+      `<b>${best.id} — ${esc(best.name)}</b> is the strongest: ${best.live} of ${best.n} call it a live problem or already funded (${pct(best.live,best.n)}%).`);
+    push("Use cases","risk",
+      `<b>${worst.id} — ${esc(worst.name)}</b> is the weakest at ${pct(worst.live,worst.n)}%. <em>If it stays lowest as responses accumulate, question whether it belongs in the matrix at all.</em>`);
+  }
+
+  // who was willing to rate the product at all
+  const optedIn  = R.filter(r=>/opened/i.test(r.cap_optin||"")).length;
+  const declined = R.filter(r=>/declined/i.test(r.cap_optin||"")).length;
+  if(optedIn + declined > 0){
+    push("Reach", optedIn >= declined ? "good" : "watch",
+      `<b>${optedIn}</b> of ${optedIn+declined} opened the capability section; <b>${declined}</b> said it was not their area.` +
+      (declined > optedIn ? ` <em>Most of this audience cannot evaluate the product on its capabilities. That is a fact about who to sell to, not a flaw in the responses.</em>` : ""));
+  }
+
+  // capabilities — means exclude anyone who declined to judge
+  const capScore = CAP.map(([id,name,trace])=>{
+    const d = distCap(R,"cap_"+id);
+    return {id,name,trace,crit:d.counts[3], rated:d.rated, cant:d.cant, answered:d.answered, mean:d.mean};
+  }).filter(c=>c.answered>0);
+
+  if(capScore.some(c=>c.rated>0)){
+    const rated = capScore.filter(c=>c.rated>0);
+    const top = [...rated].sort((a,b)=>b.mean-a.mean)[0];
+    const bot = [...rated].sort((a,b)=>a.mean-b.mean)[0];
+    push("Capabilities","good",
+      `<b>${top.id} — ${esc(top.name)}</b> rates highest (mean ${top.mean.toFixed(2)} of 4; ${pct(top.crit,top.rated)}% critical). Traces to matrix domain <b>${esc(top.trace)}</b>.`);
+    push("Capabilities","risk",
+      `<b>${bot.id} — ${esc(bot.name)}</b> rates lowest (mean ${bot.mean.toFixed(2)}). Traces to <b>${esc(bot.trace)}</b> — <em>a candidate to downgrade or defer.</em>`);
+
+    const totCant = capScore.reduce((s,c)=>s+c.cant,0);
+    const totAns  = capScore.reduce((s,c)=>s+c.answered,0);
+    const worst   = [...capScore].sort((a,b)=> share(b.cant,b.answered) - share(a.cant,a.answered))[0];
+    if(totCant > 0){
+      push("Can't judge", pct(totCant,totAns) >= 25 ? "risk" : "watch",
+        `<b>${pct(totCant,totAns)}%</b> of all capability ratings were “can't judge”. Worst is <b>${worst.id} — ${esc(worst.name)}</b> at <b>${pct(worst.cant,worst.answered)}%</b>. ` +
+        `<em>Anything above roughly 40% cannot carry a business-owner conversation in its current wording — that is a translation problem, not a build-order one.</em>`);
+    }
+  }
+
+  // the two-estate claim — the one the competitive deck says is uncontested
+  const teAll = R.filter(r=>(r.two_estate||"").trim()).length;
+  if(teAll){
+    const whole = R.filter(r=>/whole point/i.test(r.two_estate)).length;
+    const sep   = R.filter(r=>/rather keep/i.test(r.two_estate) || /don't see/i.test(r.two_estate)).length;
+    const cls = whole >= sep ? "good" : "risk";
+    push("Core claim", cls,
+      `<b>${pct(whole,teAll)}%</b> say governing agents alone doesn't solve their problem; <b>${pct(sep,teAll)}%</b> would keep the two estates separate or see no connection. <em>This is the single claim the competitive analysis found uncontested — it lives or dies here.</em>`);
+  }
+
+  // buy vs SI — the threat named in the competitive deck
+  const rt = tally(R,"route"); const rtN = rt.reduce((s,x)=>s+x[1],0);
+  if(rtN){
+    const get = re => (rt.find(([v])=>re.test(v))||["",0])[1];
+    const buy = get(/buy a specialist/i), si = get(/systems integrator/i), build = get(/build it ourselves/i), cloud = get(/cloud provider/i);
+    push("Buying route", si >= buy ? "risk" : "good",
+      `Buy a platform <b>${pct(buy,rtN)}%</b> · integrator builds and runs it <b>${pct(si,rtN)}%</b> · build in-house <b>${pct(build,rtN)}%</b> · use the cloud provider <b>${pct(cloud,rtN)}%</b>.` +
+      (si >= buy ? ` <em>The integrator is beating the product. That matches the competitive read and it is a positioning problem, not a feature problem.</em>` : ""));
+  }
+
+  // FinOps wedge
+  const fN = R.filter(r=>(r.finops||"").trim()).length;
+  if(fN){
+    const boardLevel = R.filter(r=>/board-level/i.test(r.finops)).length;
+    const notWhy     = R.filter(r=>/wouldn't be why/i.test(r.finops)).length;
+    push("FinOps wedge", boardLevel > notWhy ? "good" : "watch",
+      `<b>${pct(boardLevel,fN)}%</b> would buy on agent cost alone; <b>${pct(notWhy,fN)}%</b> say it matters but wouldn't be the reason they bought.` +
+      (boardLevel <= notWhy ? ` <em>Supports demoting agentic FinOps from wedge to proof point.</em>` : ` <em>Supports keeping FinOps as the entry motion.</em>`));
+  }
+
+  // budget owner
+  const bd = tally(R,"budget");
+  if(bd.length){
+    const bdN = bd.reduce((s,x)=>s+x[1],0);
+    const none = (bd.find(([v])=>/No budget line/i.test(v))||["",0])[1];
+    push("Budget","watch",
+      `Most common owner: <b>${esc(bd[0][0])}</b> (${pct(bd[0][1],bdN)}%). <b>${pct(none,bdN)}%</b> say no budget line exists yet.`);
+  }
+
+  // deployment restrictiveness
+  const dep = tallyMulti(R,"deployment");
+  if(dep.length){
+    const sov = (dep.find(([v])=>/Sovereign/i.test(v))||["",0])[1];
+    const saas= (dep.find(([v])=>/^Vendor-hosted/i.test(v))||["",0])[1];
+    push("Deployment","watch",
+      `<b>${pct(sov,R.length)}%</b> require sovereign or air-gapped; only <b>${pct(saas,R.length)}%</b> accept plain vendor-hosted SaaS. <em>Sovereignty sequencing should be tested against this.</em>`);
+  }
+
+  return `<h2 class="sh">What the responses say</h2>
+    <p class="subnote">Generated from the filtered set. Each line states a number and what it implies — argue with the implication, not the arithmetic.</p>
+    <div class="findings">${out.join("")}</div>`;
+}
+
+/* ---------- use cases ---------- */
+function useCases(R,N){
+  const rows = UC.map(([id,name])=>{
+    const d = dist(R,"uc_"+id,UC_SCALE);
+    return {id,name,d,live:d.counts[2]+d.counts[3]};
+  }).sort((a,b)=> share(b.live,b.d.n) - share(a.live,a.d.n));
+
+  const body = rows.map(u=>{
+    if(!u.d.n) return `<div class="brow"><div class="bl">${u.id} · ${esc(u.name)}</div><div class="track"></div><div class="bv">—</div></div>`;
+    const seg = u.d.counts.map((c,i)=> c ? `<span class="s${i+1}" style="width:${share(c,u.d.n)}%" title="${esc(UC_SCALE[i])}: ${c}"></span>` : "").join("");
+    return `<div class="brow">
+      <div class="bl">${esc(u.name)}<small>${u.id}</small></div>
+      <div class="stack">${seg}</div>
+      <div class="bv">${pct(u.live,u.d.n)}%</div>
+    </div>`;
+  }).join("");
+
+  const prio = tally(R,"uc_priority");
+  const prioN = prio.reduce((s,x)=>s+x[1],0);
+
+  return `<h2 class="sh">Use case relevance</h2>
+  <p class="subnote">Sorted by the share calling it a live problem or already funded — the right-hand figure. That is the column that matters; “on the horizon” is politeness.</p>
+  ${card("How each situation maps to their organisation","Eight scopes, rated against their own estate.",
+      legend(UC_SCALE) + body)}
+  ${card("Closest to what they must solve in the next twelve months","Forced single choice. This is the sharper signal of the two.",
+      prioN ? barRows(prio, prioN, {cls:"deep"}) : `<p class="empty">Nobody answered this yet.</p>`)}`;
+}
+
+/* ---------- capabilities ---------- */
+function capabilities(R,N){
+  const rows = CAP.map(([id,name,trace])=>{
+    const d = distCap(R,"cap_"+id);
+    return {id,name,trace,d};
+  }).sort((a,b)=> b.d.mean - a.d.mean);
+
+  const body = rows.map(c=>{
+    if(!c.d.answered) return "";
+    const seg = c.d.counts.map((v,i)=> v ? `<span class="s${i+1}" style="width:${share(v,c.d.answered)}%" title="${esc(CAP_SCALE[i])}: ${v}"></span>` : "").join("")
+      + (c.d.cant ? `<span class="s0" style="width:${share(c.d.cant,c.d.answered)}%" title="Can't judge: ${c.d.cant}"></span>` : "");
+    const cantPct = pct(c.d.cant, c.d.answered);
+    return `<div class="brow cap">
+      <div class="bl">${esc(c.name)}<small>${c.id} → ${esc(c.trace)}</small></div>
+      <div class="stack">${seg}</div>
+      <div class="bv">${c.d.rated ? c.d.mean.toFixed(2) : "—"}</div>
+      <div class="bn${cantPct>=40?" hot":""}">${cantPct}% n/a</div>
+    </div>`;
+  }).join("");
+
+  const t3 = tallyMulti(R,"top3");
+  const t3rows = t3.map(([label,count])=>{
+    const id = label.split("—")[0].trim();
+    const meta = CAP.find(c=>c[0]===id);
+    return [ (meta ? meta[1] : label), count ];
+  });
+
+  return `<h2 class="sh">Capability validation</h2>
+  <p class="subnote">Answered only by respondents who opted into the optional section. Mean is out of 4 and excludes anyone who said they could not judge it. The small grey text traces each capability back to its domain in the capability matrix.</p>
+  ${card("Importance of each capability","Sorted by mean, which counts only those who placed a rating. The right-hand figure is the share who said they could not judge it — that column is a finding, not a gap.",
+      legend(CAP_SCALE.concat([CANT_JUDGE])) + (body || `<p class="empty">Nobody has opened the optional section yet.</p>`))}
+  ${card("Forced choice: only three of the ten","The question that should decide build order.",
+      t3rows.length ? barRows(t3rows, R.length, {cls:"brass"}) : `<p class="empty">Nobody answered this yet.</p>`)}`;
+}
+
+/* ---------- strategic questions ---------- */
+function strategic(R,N){
+  const blocks = [
+    ["two_estate","The two-estate claim","Whether running the applications alongside the agents is the point, or an add-on."],
+    ["finops","Where agent cost sits today","Tests agentic FinOps as entry wedge versus proof point."],
+    ["ops_service","Appetite for operations run as a service","The PRE-to-ARE proposition, in plain language."]
+  ].map(([k,title,note])=>{
+    const t = tally(R,k), n = t.reduce((s,x)=>s+x[1],0);
+    return card(title, note, n ? barRows(t,n,{cls:"deep"}) : `<p class="empty">No answers yet.</p>`);
+  }).join("");
+  return `<h2 class="sh">The three strategic questions</h2>
+    <p class="subnote">These three carry more weight than the capability grid. They test the positioning, not the feature set.</p>${blocks}`;
+}
+
+/* ---------- commercial ---------- */
+function commercial(R,N){
+  const one = (k,title,note,multi) => {
+    const t = multi ? tallyMulti(R,k) : tally(R,k);
+    const n = multi ? R.length : t.reduce((s,x)=>s+x[1],0);
+    return card(title,note, t.length ? barRows(t,n,{cls:multi?"":"deep"}) : `<p class="empty">No answers yet.</p>`);
+  };
+  return `<h2 class="sh">Commercial reality</h2>
+  <p class="subnote">Percentages for deployment are of all respondents, since that question allows several answers.</p>
+  <div class="cols2">
+    ${one("route","Realistic buying route","Buy, build, integrator, or the incumbent cloud.")}
+    ${one("budget","Whose budget it comes from","Determines who the pitch is actually written for.")}
+    ${one("deployment","Required deployment models","Multiple answers allowed.",true)}
+    ${one("price","Realistic annual spend","The number no published research answers.")}
+  </div>
+  ${one("intent","What they would do if it existed and met requirements","The closest thing here to a demand signal.")}`;
+}
+
+/* ---------- verbatim ---------- */
+function verbatim(R){
+  const who = r => `${esc(r.title||"—")}, ${esc(r.company||"—")}${r.industry?" · "+esc(r.industry):""}`;
+  const blockers = R.filter(r=>(r.blocker||"").trim().length>2);
+  const notes    = R.filter(r=>(r.followup_note||"").trim().length>2);
+  const b = blockers.length
+    ? blockers.map(r=>`<div class="quote"><p>${esc(r.blocker)}</p><div class="who">${who(r)}</div></div>`).join("")
+    : `<p class="empty">No written answers yet. These are usually the most useful part of the survey — chase them in the follow-up calls.</p>`;
+  const n = notes.length
+    ? notes.map(r=>`<div class="quote"><p>${esc(r.followup_note)}</p><div class="who">${who(r)}</div></div>`).join("")
+    : `<p class="empty">Nothing added.</p>`;
+  return `<h2 class="sh">In their own words</h2>
+    ${card("What is actually stopping them", "Unedited. Read all of these before touching the numbers above.", b)}
+    ${card("Anything they wanted covered", "", n)}`;
+}
+
+/* ---------- respondents ---------- */
+function respondents(R){
+  const rows = R.slice().sort((a,b)=>{
+    const s = x => /paid pilot/i.test(x.intent||"") ? 0 : (/briefing/i.test(x.intent||"") ? 1 : 2);
+    return s(a)-s(b);
+  }).map(r=>{
+    const hot = /paid pilot/i.test(r.intent||"");
+    return `<tr class="${hot?"hot":""}">
+      <td>${esc(r.name)}${hot?' <span class="pill">Pilot</span>':""}</td>
+      <td>${esc(r.title)}</td><td>${esc(r.company)}</td><td>${esc(r.industry)}</td>
+      <td>${esc(r.uc_priority)}</td><td>${esc(r.route)}</td><td>${esc(r.price)}</td>
+      <td>${/^yes/i.test(r.followup||"") ? esc(r.email) : "—"}</td>
+    </tr>`;
+  }).join("");
+  return `<h2 class="sh">Who answered</h2>
+  <p class="subnote">Email is shown only where the respondent agreed to a follow-up conversation. Pilot candidates are listed first.</p>
+  <div class="card"><div class="scroll"><table>
+    <tr><th>Name</th><th>Title</th><th>Organisation</th><th>Sector</th><th>Priority use case</th><th>Route</th><th>Band</th><th>Contact if agreed</th></tr>
+    ${rows}
+  </table></div></div>`;
+}
+
+/* ---------- export ---------- */
+function exportCSV(){
+  const R = filtered(); if(!R.length) return;
+  const keys = [...new Set(R.flatMap(r=>Object.keys(r)))];
+  const q = v => '"' + String(v==null?"":v).replace(/"/g,'""') + '"';
+  const csv = [keys.join(",")].concat(R.map(r=>keys.map(k=>q(r[k])).join(","))).join("\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"}));
+  a.download = "next-survey-filtered-" + new Date().toISOString().slice(0,10) + ".csv";
+  a.click();
+}
+</script>
+</body>
+</html>
